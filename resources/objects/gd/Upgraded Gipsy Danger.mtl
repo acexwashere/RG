@@ -1,0 +1,12 @@
+# Made in Blockbench 4.9.4
+newmtl m_53bb41d0-eef4-9461-546f-60c41158a105
+map_Kd GipsyDangerTexture.png
+newmtl m_9aa17d9a-4dca-026b-50d0-b82277c17d04
+map_Kd combine_emitter01_baseColor.png
+newmtl m_feb4edf5-d1b2-ae6b-090f-17104a564ef5
+map_Kd Titan_Gipsyman_Gun.png
+newmtl m_d51cd4fb-0523-ac45-ccee-f14be4611dfa
+map_Kd GipsyDanger_Sword_D.png
+newmtl m_9ee6ff24-c220-d833-2543-66721652fdb7
+map_Kd CameramanTITAN_UPGR_JetPack_baseColor.png
+newmtl none

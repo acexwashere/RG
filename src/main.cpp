@@ -165,8 +165,9 @@ int main() {
 
     // load models
     // -----------
-    Model ourModel("resources/objects/backpack/backpack.obj");
-    ourModel.SetShaderTextureNamePrefix("material.");
+    Model ourModel("resources/objects/gd/Upgraded Gipsy Danger.obj");
+    Model ourModel2("resources/objects/backpack/backpack.obj");
+    ourModel.SetShaderTextureNamePrefix("material_");
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
@@ -223,11 +224,17 @@ int main() {
 
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model,
-                               programState->backpackPosition); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
+        model = glm::translate(model,programState->backpackPosition); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(0.1));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
+
+        glm::mat4 model2 = glm::mat4(1.0f);
+        model = glm::translate(model2,programState->backpackPosition); // translate it down so it's at the center of the scene
+        model = glm::scale(model2, glm::vec3(1.0));    // it's a bit too big for our scene, so scale it down
+        ourShader.setMat4("model2", model2);
+        ourModel2.Draw(ourShader);
+
 
         if (programState->ImGuiEnabled)
             DrawImGui(programState);
