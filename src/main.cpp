@@ -171,7 +171,7 @@ int main() {
 
     // load models
     // -----------
-    Model ourModel(FileSystem::getPath("resources/objects/cat/12221_Cat_v1_l3.obj"));
+    Model ourModel(FileSystem::getPath("resources/objects/harren/test.obj"));
 
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
@@ -297,7 +297,7 @@ int main() {
 
         // don't forget to enable shader before setting uniforms
         ourShader.use();
-        pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
+        pointLight.position = glm::vec3(4.0 , 4.0f, 4.0 );
         ourShader.setVec3("pointLight.position", pointLight.position);
         ourShader.setVec3("pointLight.ambient", pointLight.ambient);
         ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
