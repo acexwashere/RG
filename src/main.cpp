@@ -171,8 +171,12 @@ int main() {
 
     // load models
     // -----------
-    Model ourModel(FileSystem::getPath("resources/objects/harren/test.obj"));
-
+    Model buildings(FileSystem::getPath("resources/objects/castle/buildings.obj"));
+    Model grass(FileSystem::getPath("resources/objects/castle/grass.obj"));
+    Model ground(FileSystem::getPath("resources/objects/castle/ground.obj"));
+    Model lights(FileSystem::getPath("resources/objects/castle/lights.obj"));
+    Model roads(FileSystem::getPath("resources/objects/castle/roads.obj"));
+    Model walls(FileSystem::getPath("resources/objects/castle/walls.obj"));
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -297,7 +301,7 @@ int main() {
 
         // don't forget to enable shader before setting uniforms
         ourShader.use();
-        pointLight.position = glm::vec3(4.0 , 4.0f, 4.0 );
+        pointLight.position = glm::vec3(0.0 , 10.0f, 0.0 );
         ourShader.setVec3("pointLight.position", pointLight.position);
         ourShader.setVec3("pointLight.ambient", pointLight.ambient);
         ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
@@ -319,8 +323,14 @@ int main() {
         model = glm::translate(model,programState->backpackPosition); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(0.1));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
-        ourModel.Draw(ourShader);
 
+
+        buildings.Draw(ourShader);
+        grass.Draw(ourShader);
+        ground.Draw(ourShader);
+        lights.Draw(ourShader);
+        roads.Draw(ourShader);
+        walls.Draw(ourShader);
 
 
 
