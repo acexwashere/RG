@@ -178,6 +178,8 @@ int main() {
     Model lights(FileSystem::getPath("resources/objects/castle/lights.obj"));
     Model roads(FileSystem::getPath("resources/objects/castle/roads.obj"));
     Model walls(FileSystem::getPath("resources/objects/castle/walls.obj"));
+    Model terrain(FileSystem::getPath("resources/objects/castle/terrain.obj"));
+    Model water(FileSystem::getPath("resources/objects/castle/water.obj"));
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -344,14 +346,15 @@ int main() {
         lightingShader.setMat4("view", view);
         lightingShader.setMat4("model", model);
 
-
+        // models draw
         buildings.Draw(ourShader);
         grass.Draw(ourShader);
         ground.Draw(ourShader);
         lights.Draw(ourShader);
         roads.Draw(ourShader);
         walls.Draw(ourShader);
-
+        water.Draw(ourShader);
+        terrain.Draw(ourShader);
 
 
 
