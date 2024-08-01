@@ -30,8 +30,8 @@ unsigned int loadTexture(const char *path);
 unsigned int loadCubemap(vector<std::string> faces);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1600;
+const unsigned int SCR_HEIGHT = 900;
 
 // camera
 
@@ -167,6 +167,7 @@ int main() {
     // build and compile shaders
     // -------------------------
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
+    Shader lightingShader("resources/shaders/5.1.light_casters.vs", "resources/shaders/5.1.light_casters.fs");
     Shader skyboxShader("resources/shaders/skybox.vs","resources/shaders/skybox.fs");
 
     // load models
@@ -260,7 +261,6 @@ int main() {
     skyboxShader.setInt("skybox", 0);
 
 
-
     // load models
     // -----------
     //Model ourModel2("resources/objects/backpack/backpack.obj");
@@ -301,6 +301,7 @@ int main() {
 
         // don't forget to enable shader before setting uniforms
         ourShader.use();
+        /*
         pointLight.position = glm::vec3(0.0 , 10.0f, 0.0 );
         ourShader.setVec3("pointLight.position", pointLight.position);
         ourShader.setVec3("pointLight.ambient", pointLight.ambient);
@@ -311,6 +312,7 @@ int main() {
         ourShader.setFloat("pointLight.quadratic", pointLight.quadratic);
         ourShader.setVec3("viewPosition", programState->camera.Position);
         ourShader.setFloat("material.shininess", 32.0f);
+        */
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
                                                 (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
@@ -318,11 +320,29 @@ int main() {
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
 
+
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model,programState->backpackPosition); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(0.1));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
+
+        // THE SUN
+        lightingShader.use();
+        lightingShader.setVec3("light.direction", -0.1f, -1.0f,0.0f);
+        lightingShader.setVec3("viewPos", programState->camera.Position);
+
+        // light properties
+        lightingShader.setVec3("light.ambient", 0.5f, 0.5f, 0.5f);
+        lightingShader.setVec3("light.diffuse", 0.3f, 0.3f, 0.3f);
+        lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+        // material properties
+        lightingShader.setFloat("material.shininess", 32.0f);
+
+        lightingShader.setMat4("projection", projection);
+        lightingShader.setMat4("view", view);
+        lightingShader.setMat4("model", model);
 
 
         buildings.Draw(ourShader);
@@ -331,6 +351,7 @@ int main() {
         lights.Draw(ourShader);
         roads.Draw(ourShader);
         walls.Draw(ourShader);
+
 
 
 
