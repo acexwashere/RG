@@ -167,7 +167,6 @@ int main() {
     // build and compile shaders
     // -------------------------
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
-    Shader lightingShader("resources/shaders/5.1.light_casters.vs", "resources/shaders/5.1.light_casters.fs");
     Shader skyboxShader("resources/shaders/skybox.vs","resources/shaders/skybox.fs");
 
     // load models
@@ -277,7 +276,7 @@ int main() {
     pointLight.linear = 0.09f;
     pointLight.quadratic = 0.032f;
 
-    programState->camera.Position = glm::vec3(0.0f,0.0f,0.0f);
+    programState->camera.Position = glm::vec3(0.0f,1.0f,0.0f);
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -303,8 +302,13 @@ int main() {
 
         // don't forget to enable shader before setting uniforms
         ourShader.use();
-        /*
-        pointLight.position = glm::vec3(0.0 , 10.0f, 0.0 );
+
+        ourShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+        ourShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+        ourShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+
+        pointLight.position = glm::vec3(0.0 , 1.0f, 0.0 );
         ourShader.setVec3("pointLight.position", pointLight.position);
         ourShader.setVec3("pointLight.ambient", pointLight.ambient);
         ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
@@ -314,7 +318,8 @@ int main() {
         ourShader.setFloat("pointLight.quadratic", pointLight.quadratic);
         ourShader.setVec3("viewPosition", programState->camera.Position);
         ourShader.setFloat("material.shininess", 32.0f);
-        */
+
+
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
                                                 (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
@@ -326,25 +331,9 @@ int main() {
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model,programState->backpackPosition); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.1));    // it's a bit too big for our scene, so scale it down
+        model = glm::scale(model, glm::vec3(0.5));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
 
-        // THE SUN
-        lightingShader.use();
-        lightingShader.setVec3("light.direction", -0.1f, -1.0f,0.0f);
-        lightingShader.setVec3("viewPos", programState->camera.Position);
-
-        // light properties
-        lightingShader.setVec3("light.ambient", 0.5f, 0.5f, 0.5f);
-        lightingShader.setVec3("light.diffuse", 0.3f, 0.3f, 0.3f);
-        lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-
-        // material properties
-        lightingShader.setFloat("material.shininess", 32.0f);
-
-        lightingShader.setMat4("projection", projection);
-        lightingShader.setMat4("view", view);
-        lightingShader.setMat4("model", model);
 
         // models draw
         buildings.Draw(ourShader);
