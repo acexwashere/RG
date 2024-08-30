@@ -63,7 +63,7 @@ struct ProgramState {
     float backpackScale = 1.0f;
     PointLight pointLight;
     ProgramState()
-            : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
+            : camera(glm::vec3(0.0f, 0.0f, 0.0f)) {}
 
     void SaveToFile(std::string filename);
 
@@ -179,6 +179,7 @@ int main() {
     Model walls(FileSystem::getPath("resources/objects/castle/walls.obj"));
     Model terrain(FileSystem::getPath("resources/objects/castle/terrain.obj"));
     Model water(FileSystem::getPath("resources/objects/castle/water.obj"));
+    Model pointL(FileSystem::getPath("resources/objects/castle/pointLL.obj"));
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -261,22 +262,41 @@ int main() {
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
+    // light positions
+
+    std::vector<glm::vec3> pointLightPositions;
+    pointLightPositions.push_back(glm::vec3(-9.381371f,1.568f,25.077398f));
+    pointLightPositions.push_back(glm::vec3(-4.435892f,1.568f,12.938977f));
+    pointLightPositions.push_back(glm::vec3(1.759406f,1.568f,24.267124f));
+    pointLightPositions.push_back(glm::vec3(17.032915f,1.568f,21.689722f));
+    pointLightPositions.push_back(glm::vec3(15.790824f,1.568f,15.918755f));
+    pointLightPositions.push_back(glm::vec3(2.581259f,1.568f,15.373384f));
+    pointLightPositions.push_back(glm::vec3(-22.912149f,1.568f,17.324026f));
+    pointLightPositions.push_back(glm::vec3(-22.354031f,1.568f,30.593290f));
+    pointLightPositions.push_back(glm::vec3(-14.486840f,1.568f,8.162651f));
+    pointLightPositions.push_back(glm::vec3(-26.486628f,1.568f,3.099716));
+    //pointLightPositions.push_back(glm::vec3(,1.568f,));
+    //pointLightPositions.push_back(glm::vec3(,1.568f,));
+    // pit yard
+    pointLightPositions.push_back(glm::vec3(10.794263f,1.568f,4.350097f));
+    pointLightPositions.push_back(glm::vec3(22.547163f,1.568f,-0.210216f));
+    pointLightPositions.push_back(glm::vec3(19.883280f,1.568f,-12.011540f));
+    pointLightPositions.push_back(glm::vec3(8.315762f,1.568f,-10.722307f));
+    pointLightPositions.push_back(glm::vec3(2.515677f,1.568f,-13.012956f));
+    pointLightPositions.push_back(glm::vec3(-2.813071f,1.568f,-0.056311f));
+    // rear
+    pointLightPositions.push_back(glm::vec3(8.016793f,1.568f,-18.915552f));
+    pointLightPositions.push_back(glm::vec3(7.852028f,1.568f,-28.747229f));
+    pointLightPositions.push_back(glm::vec3(-0.836403f,1.568f,-23.225985f));
+
+
 
     // load models
     // -----------
     //Model ourModel2("resources/objects/backpack/backpack.obj");
+    //delet this
 
-    PointLight& pointLight = programState->pointLight;
-    pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
-    pointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
-    pointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
-    pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
 
-    pointLight.constant = 1.0f;
-    pointLight.linear = 0.09f;
-    pointLight.quadratic = 0.032f;
-
-    programState->camera.Position = glm::vec3(0.0f,1.0f,0.0f);
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -303,21 +323,26 @@ int main() {
         // don't forget to enable shader before setting uniforms
         ourShader.use();
 
-        ourShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        ourShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-        ourShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-        ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+        //ourShader.setInt("num_of_lights", pointLightPositions.size());
 
-        pointLight.position = glm::vec3(0.0 , 1.0f, 0.0 );
-        ourShader.setVec3("pointLight.position", pointLight.position);
-        ourShader.setVec3("pointLight.ambient", pointLight.ambient);
-        ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
-        ourShader.setVec3("pointLight.specular", pointLight.specular);
-        ourShader.setFloat("pointLight.constant", pointLight.constant);
-        ourShader.setFloat("pointLight.linear", pointLight.linear);
-        ourShader.setFloat("pointLight.quadratic", pointLight.quadratic);
         ourShader.setVec3("viewPosition", programState->camera.Position);
         ourShader.setFloat("material.shininess", 32.0f);
+
+        ourShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.0f);
+        ourShader.setVec3("dirLight.ambient", 0.3f, 0.2f, 0.2f);
+        ourShader.setVec3("dirLight.diffuse", 0.6f, 0.5f, 0.5f);
+        ourShader.setVec3("dirLight.specular", 0.3f, 0.3f, 0.3f);
+
+        //lights
+        for (int i = 0; i < pointLightPositions.size(); ++i) {
+            ourShader.setVec3("pointLights["+to_string(i)+"].position", pointLightPositions[i]);
+            ourShader.setVec3("pointLights["+to_string(i)+"].ambient", 0.05f, 0.05f, 0.05f);
+            ourShader.setVec3("pointLights["+ to_string(i)+"].diffuse", 0.8f, 0.8f, 0.8f);
+            ourShader.setVec3("pointLights["+to_string(i)+ "].specular", 0.5f, 0.5f, 0.5f);
+            ourShader.setFloat("pointLights["+to_string(i)+"].constant", 1.0f);
+            ourShader.setFloat("pointLights["+to_string(i)+"].linear", 0.09);
+            ourShader.setFloat("pointLights["+to_string(i)+"].quadratic", 0.032);
+        }
 
 
         // view/projection transformations
@@ -330,8 +355,8 @@ int main() {
 
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model,programState->backpackPosition); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.5));    // it's a bit too big for our scene, so scale it down
+        model = glm::translate(model,glm::vec3 (0.0f,0.0f,0.0f)); // translate it down so it's at the center of the scene
+        //model = glm::scale(model, glm::vec3(0.5));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
 
 
@@ -344,6 +369,16 @@ int main() {
         walls.Draw(ourShader);
         water.Draw(ourShader);
         terrain.Draw(ourShader);
+
+
+        for (int i = 0; i < pointLightPositions.size(); ++i) {
+            if(i>0)
+               model = glm::translate(model,-pointLightPositions[i-1]);
+
+            model = glm::translate(model,pointLightPositions[i]);
+            ourShader.setMat4("model", model);
+            pointL.Draw(ourShader);
+        }
 
 
 

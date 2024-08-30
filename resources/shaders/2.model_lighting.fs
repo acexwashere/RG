@@ -33,7 +33,12 @@ in vec2 TexCoords;
 in vec3 Normal;
 in vec3 FragPos;
 
-uniform PointLight pointLight;
+
+#define NR_POINT_LIGHTS 15
+
+uniform int num_of_lights;
+
+uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform Material material;
 uniform DirLight dirLight;
 
@@ -47,8 +52,11 @@ void main()
 {
     vec3 normal = normalize(Normal);
     vec3 viewDir = normalize(viewPosition - FragPos);
+
     vec3 result = CalcDirLight(dirLight, normal, viewDir);
-    result += CalcPointLight(pointLight, normal, FragPos, viewDir);
+
+    for(int i = 0; i < NR_POINT_LIGHTS; i++)
+        result += CalcPointLight(pointLights[i], normal, FragPos, viewDir);
     FragColor = vec4(result, 1.0);
 }
 
