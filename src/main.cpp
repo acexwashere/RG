@@ -39,6 +39,7 @@ float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 bool blinn = false;
+bool numberLights = false;
 
 // timing
 float deltaTime = 0.0f;
@@ -291,9 +292,6 @@ int main() {
 
     // shader configuration
     // --------------------
-         // shader.use();
-         // shader.setInt("texture1", 0);
-
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
     blendingShader.use();
@@ -351,11 +349,7 @@ int main() {
     pointLightPositions.push_back(glm::vec3(8.747764f,9.15f,6.004789f));//
 
 
-    // load models
-    // -----------
-    //Model ourModel2("resources/objects/backpack/backpack.obj");
-    //delet this
-
+    //setting uniform
     programState->camera.Position = glm::vec3 (-12.1397f,2.2f,37.91311f);
     programState->camera.Front= glm::vec3 (-0.000004f,0.0436818f,-0.999048f);
 
@@ -395,6 +389,7 @@ int main() {
         // don't forget to enable shader before setting uniforms
         ourShader.use();
         ourShader.setInt("blinn",blinn);
+        ourShader.setInt("numberLights",numberLights);
         //ourShader.setInt("num_of_lights", pointLightPositions.size());
 
         ourShader.setVec3("viewPosition", programState->camera.Position);
@@ -442,7 +437,7 @@ int main() {
         terrain.Draw(ourShader);
 
 
-        for (int i = 0; i < pointLightPositions.size(); ++i) {
+        for (int i = 0; i < pointLightPositions.size(); i++) {
             if(i>0)
                model = glm::translate(model,-pointLightPositions[i-1]);
 
@@ -462,8 +457,6 @@ int main() {
         model = glm::scale(model, glm::vec3(2.0f));
         blendingShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 6);
-
-
 
 
         // draw skybox as last
@@ -585,7 +578,7 @@ void DrawImGui(ProgramState *programState) {
     }
     {
         ImGui::Begin("Camera info");
-        ImGui::Text("[F1 enables ImGui]\n[F2 enables mouse update]\n[F3 enables blinn]\n");
+        ImGui::Text("[F1 enables ImGui]\n[F2 enables mouse update]\n[F3 enables blinn]\n[F4 enables wall lights] -low fps warning!\n");
         const Camera& c = programState->camera;
         ImGui::Text("Camera position: (%f, %f, %f)", c.Position.x, c.Position.y, c.Position.z);
         ImGui::Text("(Yaw, Pitch): (%f, %f)", c.Yaw, c.Pitch);
@@ -613,6 +606,9 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     }
     if (key == GLFW_KEY_F3 && action == GLFW_PRESS) {
         blinn = !blinn;
+    }
+    if (key == GLFW_KEY_F4 && action == GLFW_PRESS) {
+        numberLights = !numberLights;
     }
 
 }
