@@ -187,7 +187,7 @@ int main() {
     Model buildings(FileSystem::getPath("resources/objects/castle/buildings.obj"));
     Model grass(FileSystem::getPath("resources/objects/castle/grass.obj"));
     Model ground(FileSystem::getPath("resources/objects/castle/ground.obj"));
-    Model lights(FileSystem::getPath("resources/objects/castle/lights.obj"));
+    Model lights(FileSystem::getPath("resources/objects/castle/lights2.obj"));
     Model roads(FileSystem::getPath("resources/objects/castle/roads.obj"));
     Model walls(FileSystem::getPath("resources/objects/castle/walls.obj"));
     Model terrain(FileSystem::getPath("resources/objects/castle/terrain.obj"));
