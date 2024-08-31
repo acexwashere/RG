@@ -40,6 +40,7 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 bool blinn = false;
 bool numberLights = false;
+bool bloom_lights = false;
 
 // timing
 float deltaTime = 0.0f;
@@ -300,6 +301,7 @@ int main() {
     // light positions
 
     std::vector<glm::vec3> pointLightPositions;
+    // outer 10
     pointLightPositions.push_back(glm::vec3(-9.381371f,1.568f,25.077398f));
     pointLightPositions.push_back(glm::vec3(-4.435892f,1.568f,12.938977f));
     pointLightPositions.push_back(glm::vec3(1.759406f,1.568f,24.267124f));
@@ -310,14 +312,14 @@ int main() {
     pointLightPositions.push_back(glm::vec3(-22.354031f,1.568f,30.593290f));
     pointLightPositions.push_back(glm::vec3(-14.486840f,1.568f,8.162651f));
     pointLightPositions.push_back(glm::vec3(-26.486628f,1.568f,3.099716));
-    // pit yard
+    // pit yard 6
     pointLightPositions.push_back(glm::vec3(10.794263f,1.568f,4.350097f));
     pointLightPositions.push_back(glm::vec3(22.547163f,1.568f,-0.210216f));
     pointLightPositions.push_back(glm::vec3(19.883280f,1.568f,-12.011540f));
     pointLightPositions.push_back(glm::vec3(8.315762f,1.568f,-10.722307f));
     pointLightPositions.push_back(glm::vec3(2.515677f,1.568f,-13.012956f));
     pointLightPositions.push_back(glm::vec3(-2.813071f,1.568f,-0.056311f));
-    // rear
+    // rear 3
     pointLightPositions.push_back(glm::vec3(8.016793f,1.568f,-18.915552f));
     pointLightPositions.push_back(glm::vec3(7.852028f,1.568f,-28.747229f));
     pointLightPositions.push_back(glm::vec3(-0.836403f,1.568f,-23.225985f));
@@ -347,11 +349,15 @@ int main() {
     pointLightPositions.push_back(glm::vec3(25.254265f,9.15f,2.529718f));//
     pointLightPositions.push_back(glm::vec3(13.245723f,9.15f,6.675006f ));
     pointLightPositions.push_back(glm::vec3(8.747764f,9.15f,6.004789f));//
-
+    //25
+    pointLightPositions.push_back(glm::vec3(20.943895f,9.15f,-16.252544f));
+    pointLightPositions.push_back(glm::vec3(12.959889f,9.15f,-14.621193f));//
+    pointLightPositions.push_back(glm::vec3(5.061008f,18.7f,-15.424530f));//x
+    pointLightPositions.push_back(glm::vec3(-2.163837f,11.04f,3.818007f));
+    pointLightPositions.push_back(glm::vec3(1.355791f,11.04f,6.113581f));//
 
     //setting uniform
     programState->camera.Position = glm::vec3 (-12.1397f,2.2f,37.91311f);
-    programState->camera.Front= glm::vec3 (-0.000004f,0.0436818f,-0.999048f);
 
     programState->pointLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
     programState->pointLight.diffuse = glm::vec3(0.8f, 0.4f, 0.1f);
@@ -436,15 +442,17 @@ int main() {
         water.Draw(ourShader);
         terrain.Draw(ourShader);
 
+        if(bloom_lights){
+            for (int i = 0; i < pointLightPositions.size(); i++) {
+                if (i > 0)
+                    model = glm::translate(model, -pointLightPositions[i - 1]);
 
-        for (int i = 0; i < pointLightPositions.size(); i++) {
-            if(i>0)
-               model = glm::translate(model,-pointLightPositions[i-1]);
-
-            model = glm::translate(model,pointLightPositions[i]);
-            ourShader.setMat4("model", model);
-            pointL.Draw(ourShader);
+                model = glm::translate(model, pointLightPositions[i]);
+                ourShader.setMat4("model", model);
+                pointL.Draw(ourShader);
+            }
         }
+
 
         blendingShader.use();
         blendingShader.setMat4("projection", projection);
@@ -578,7 +586,12 @@ void DrawImGui(ProgramState *programState) {
     }
     {
         ImGui::Begin("Camera info");
-        ImGui::Text("[F1 enables ImGui]\n[F2 enables mouse update]\n[F3 enables blinn]\n[F4 enables wall lights] -low fps warning!\n");
+        ImGui::Text("HOTKEYS:\n"
+                        "[F1 enables ImGui]\n"
+                        "[F2 enables mouse update]\n"
+                        "[F3 enables blinn]\n"
+                        "[F4 enables lights on the walls]\n"
+                        "[F5 enables point light cubes for bloom]\n - bloom not implemented, am tried man :( \n\n");
         const Camera& c = programState->camera;
         ImGui::Text("Camera position: (%f, %f, %f)", c.Position.x, c.Position.y, c.Position.z);
         ImGui::Text("(Yaw, Pitch): (%f, %f)", c.Yaw, c.Pitch);
@@ -609,6 +622,10 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     }
     if (key == GLFW_KEY_F4 && action == GLFW_PRESS) {
         numberLights = !numberLights;
+    }
+
+    if (key == GLFW_KEY_F5 && action == GLFW_PRESS) {
+        bloom_lights = !bloom_lights;
     }
 
 }

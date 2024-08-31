@@ -34,7 +34,7 @@ in vec3 Normal;
 in vec3 FragPos;
 
 
-#define NR_POINT_LIGHTS 44 //25 wall lights turn off for performance
+#define NR_POINT_LIGHTS 49 //25 wall lights turn off for performance
 
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform Material material;
@@ -53,10 +53,10 @@ void main()
 
     vec3 result = CalcDirLight(dirLight, normal, viewDir);
     if(numberLights){
-        for(int i = 0; i < 44; i++)
+        for(int i = 0; i < 49; i++)
             result += CalcPointLight(pointLights[i], normal, FragPos, viewDir);
     }else{
-        for(int i = 0; i < 44-25; i++)
+        for(int i = 0; i < 19; i++)
             result += CalcPointLight(pointLights[i], normal, FragPos, viewDir);
     }
     FragColor = vec4(result, 1.0);
