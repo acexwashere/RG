@@ -38,6 +38,7 @@ const unsigned int SCR_HEIGHT = 900;
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
+bool blinn = false;
 
 // timing
 float deltaTime = 0.0f;
@@ -54,6 +55,14 @@ struct PointLight {
     float quadratic;
 };
 
+struct DirLight {
+    glm::vec3 direction;
+
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+};
+
 struct ProgramState {
     glm::vec3 clearColor = glm::vec3(0);
     bool ImGuiEnabled = false;
@@ -62,6 +71,7 @@ struct ProgramState {
     glm::vec3 backpackPosition = glm::vec3(0.0f);
     float backpackScale = 1.0f;
     PointLight pointLight;
+    DirLight dirLight;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 0.0f)) {}
 
@@ -168,6 +178,7 @@ int main() {
     // -------------------------
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
     Shader skyboxShader("resources/shaders/skybox.vs","resources/shaders/skybox.fs");
+    Shader blendingShader("resources/shaders/3.1.blending.vs", "resources/shaders/3.1.blending.fs");
 
     // load models
     // -----------
@@ -227,6 +238,29 @@ int main() {
             -1.0f, -1.0f,  1.0f,
             1.0f, -1.0f,  1.0f
     };
+    float transparentVertices[] = {
+            // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+            1.0f,  0.5f,  0.0f,  1.0f,  0.0f
+    };
+    // transparent VAO
+    unsigned int transparentVAO, transparentVBO;
+    glGenVertexArrays(1, &transparentVAO);
+    glGenBuffers(1, &transparentVBO);
+    glBindVertexArray(transparentVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, transparentVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices), transparentVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
+
 
     // skybox VAO
     unsigned int skyboxVAO, skyboxVBO;
@@ -241,6 +275,7 @@ int main() {
     // load textures
     // -------------
     unsigned int cubeTexture = loadTexture(FileSystem::getPath("resources/textures/container.jpg").c_str());
+    unsigned int transparentTexture = loadTexture(FileSystem::getPath("resources/textures/intro.png").c_str());
 
     vector<std::string> faces
             {
@@ -261,6 +296,8 @@ int main() {
 
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
+    blendingShader.use();
+    blendingShader.setInt("texture1", 0);
 
     // light positions
 
@@ -275,8 +312,6 @@ int main() {
     pointLightPositions.push_back(glm::vec3(-22.354031f,1.568f,30.593290f));
     pointLightPositions.push_back(glm::vec3(-14.486840f,1.568f,8.162651f));
     pointLightPositions.push_back(glm::vec3(-26.486628f,1.568f,3.099716));
-    //pointLightPositions.push_back(glm::vec3(,1.568f,));
-    //pointLightPositions.push_back(glm::vec3(,1.568f,));
     // pit yard
     pointLightPositions.push_back(glm::vec3(10.794263f,1.568f,4.350097f));
     pointLightPositions.push_back(glm::vec3(22.547163f,1.568f,-0.210216f));
@@ -288,7 +323,32 @@ int main() {
     pointLightPositions.push_back(glm::vec3(8.016793f,1.568f,-18.915552f));
     pointLightPositions.push_back(glm::vec3(7.852028f,1.568f,-28.747229f));
     pointLightPositions.push_back(glm::vec3(-0.836403f,1.568f,-23.225985f));
-
+    // wall
+    pointLightPositions.push_back(glm::vec3(-29.452545f,9.15f,28.828215f));
+    pointLightPositions.push_back(glm::vec3(-29.428701f,9.15f,17.857210f));//
+    pointLightPositions.push_back(glm::vec3(-28.825571f,9.15f,10.272423f));
+    pointLightPositions.push_back(glm::vec3(-28.829056f,9.15f,-1.286543f));//
+    pointLightPositions.push_back(glm::vec3(-28.255074f,9.15f,-8.543051f));
+    pointLightPositions.push_back(glm::vec3(-26.531006f,9.15f,-20.714729f));//
+    pointLightPositions.push_back(glm::vec3(-23.204317f,9.15f,-25.484943f));
+    pointLightPositions.push_back(glm::vec3(-12.587111f,9.15f,-30.489275f));//
+    pointLightPositions.push_back(glm::vec3(-5.533282f,9.15f,-31.626838f));
+    pointLightPositions.push_back(glm::vec3(6.274742f,9.15f,-31.554808f));//
+    pointLightPositions.push_back(glm::vec3(12.198472f,9.15f,-29.277542f));
+    pointLightPositions.push_back(glm::vec3(21.688034f,9.15f,-22.291401f));//
+    pointLightPositions.push_back(glm::vec3(23.885237f,9.15f,-14.747684f));
+    pointLightPositions.push_back(glm::vec3(26.809204f,9.15f,-3.618064f));//
+    pointLightPositions.push_back(glm::vec3(27.615683f,9.15f,3.717987f));
+    pointLightPositions.push_back(glm::vec3(27.570189f,9.15f,16.235079f));//
+    pointLightPositions.push_back(glm::vec3(25.098827f,9.15f,22.053354f));
+    pointLightPositions.push_back(glm::vec3(16.631281f,9.15f,30.705486f));//
+    pointLightPositions.push_back(glm::vec3(10.938492f,9.15f,33.089199f));
+    pointLightPositions.push_back(glm::vec3(-1.892005f,9.15f,33.149414f));//
+    pointLightPositions.push_back(glm::vec3(-26.386749f,9.15f,31.951405f));//x
+    pointLightPositions.push_back(glm::vec3(20.329456f,9.15f,4.023185f));
+    pointLightPositions.push_back(glm::vec3(25.254265f,9.15f,2.529718f));//
+    pointLightPositions.push_back(glm::vec3(13.245723f,9.15f,6.675006f ));
+    pointLightPositions.push_back(glm::vec3(8.747764f,9.15f,6.004789f));//
 
 
     // load models
@@ -296,7 +356,19 @@ int main() {
     //Model ourModel2("resources/objects/backpack/backpack.obj");
     //delet this
 
+    programState->camera.Position = glm::vec3 (-12.1397f,2.2f,37.91311f);
+    programState->camera.Front= glm::vec3 (-0.000004f,0.0436818f,-0.999048f);
 
+    programState->pointLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
+    programState->pointLight.diffuse = glm::vec3(0.8f, 0.4f, 0.1f);
+    programState->pointLight.specular = glm::vec3(0.5f, 0.3f, 0.1f);
+    programState->pointLight.constant = 0.01f;
+    programState->pointLight.linear = 0.45f;
+    programState->pointLight.quadratic = 0.05f;
+
+    programState->dirLight.ambient = glm::vec3(0.3f, 0.2f, 0.2f);
+    programState->dirLight.diffuse = glm::vec3(0.6f, 0.5f, 0.5f);
+    programState->dirLight.specular = glm::vec3(0.3f, 0.3f, 0.3f);
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -322,28 +394,27 @@ int main() {
 
         // don't forget to enable shader before setting uniforms
         ourShader.use();
-
+        ourShader.setInt("blinn",blinn);
         //ourShader.setInt("num_of_lights", pointLightPositions.size());
 
         ourShader.setVec3("viewPosition", programState->camera.Position);
         ourShader.setFloat("material.shininess", 32.0f);
 
         ourShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.0f);
-        ourShader.setVec3("dirLight.ambient", 0.3f, 0.2f, 0.2f);
-        ourShader.setVec3("dirLight.diffuse", 0.6f, 0.5f, 0.5f);
-        ourShader.setVec3("dirLight.specular", 0.3f, 0.3f, 0.3f);
+        ourShader.setVec3("dirLight.ambient", programState->dirLight.ambient);
+        ourShader.setVec3("dirLight.diffuse", programState->dirLight.diffuse);
+        ourShader.setVec3("dirLight.specular", programState->dirLight.specular);
 
         //lights
         for (int i = 0; i < pointLightPositions.size(); ++i) {
             ourShader.setVec3("pointLights["+to_string(i)+"].position", pointLightPositions[i]);
-            ourShader.setVec3("pointLights["+to_string(i)+"].ambient", 0.05f, 0.05f, 0.05f);
-            ourShader.setVec3("pointLights["+ to_string(i)+"].diffuse", 0.8f, 0.8f, 0.8f);
-            ourShader.setVec3("pointLights["+to_string(i)+ "].specular", 0.5f, 0.5f, 0.5f);
-            ourShader.setFloat("pointLights["+to_string(i)+"].constant", 1.0f);
-            ourShader.setFloat("pointLights["+to_string(i)+"].linear", 0.09);
-            ourShader.setFloat("pointLights["+to_string(i)+"].quadratic", 0.032);
+            ourShader.setVec3("pointLights["+to_string(i)+"].ambient", programState->pointLight.ambient);
+            ourShader.setVec3("pointLights["+ to_string(i)+"].diffuse", programState->pointLight.diffuse);
+            ourShader.setVec3("pointLights["+to_string(i)+ "].specular", programState->pointLight.specular);
+            ourShader.setFloat("pointLights["+to_string(i)+"].constant", programState->pointLight.constant );
+            ourShader.setFloat("pointLights["+to_string(i)+"].linear", programState->pointLight.linear);
+            ourShader.setFloat("pointLights["+to_string(i)+"].quadratic", programState->pointLight.quadratic );
         }
-
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
@@ -379,6 +450,18 @@ int main() {
             ourShader.setMat4("model", model);
             pointL.Draw(ourShader);
         }
+
+        blendingShader.use();
+        blendingShader.setMat4("projection", projection);
+        blendingShader.setMat4("view", view);
+        //blending
+        glBindVertexArray(transparentVAO);
+        glBindTexture(GL_TEXTURE_2D, transparentTexture);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-13.1f,2.3f,33.5f));
+        model = glm::scale(model, glm::vec3(2.0f));
+        blendingShader.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
 
@@ -477,24 +560,32 @@ void DrawImGui(ProgramState *programState) {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-
     {
-        static float f = 0.0f;
-        ImGui::Begin("Hello window");
-        ImGui::Text("Hello text");
-        ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
-        ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
-        ImGui::DragFloat3("Backpack position", (float*)&programState->backpackPosition);
-        ImGui::DragFloat("Backpack scale", &programState->backpackScale, 0.05, 0.1, 4.0);
-
-        ImGui::DragFloat("pointLight.constant", &programState->pointLight.constant, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.linear", &programState->pointLight.linear, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.quadratic", &programState->pointLight.quadratic, 0.05, 0.0, 1.0);
+        ImGui::Begin("dirLight color settings:");
+//        ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
+//        ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
+//        ImGui::DragFloat3("Backpack position", (float*)&programState->backpackPosition);
+//        ImGui::DragFloat("Backpack scale", &programState->backpackScale, 0.05, 0.1, 4.0);
+        ImGui::ColorEdit3("ambient", (float*)&programState->dirLight.ambient);
+        ImGui::ColorEdit3("diffuse", (float*)&programState->dirLight.diffuse);
+        ImGui::ColorEdit3("specular", (float*)&programState->dirLight.specular);
         ImGui::End();
     }
 
     {
+        ImGui::Begin("PointLight settings");
+        ImGui::DragFloat("constant", &programState->pointLight.constant, 0.005, 0.0, 1.0);
+        ImGui::DragFloat("linear", &programState->pointLight.linear, 0.005, 0.0, 1.0);
+        ImGui::DragFloat("quadratic", &programState->pointLight.quadratic, 0.001, 0.0, 0.05);
+        ImGui::Text("pointLight color settings:");
+        ImGui::ColorEdit3("ambient", (float*)&programState->pointLight.ambient);
+        ImGui::ColorEdit3("diffuse", (float*)&programState->pointLight.diffuse);
+        ImGui::ColorEdit3("specular", (float*)&programState->pointLight.specular);
+        ImGui::End();
+    }
+    {
         ImGui::Begin("Camera info");
+        ImGui::Text("[F1 enables ImGui]\n[F2 enables mouse update]\n[F3 enables blinn]\n");
         const Camera& c = programState->camera;
         ImGui::Text("Camera position: (%f, %f, %f)", c.Position.x, c.Position.y, c.Position.z);
         ImGui::Text("(Yaw, Pitch): (%f, %f)", c.Yaw, c.Pitch);
@@ -517,6 +608,13 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
     }
+    if (key == GLFW_KEY_F2 && action == GLFW_PRESS) {
+        programState->CameraMouseMovementUpdateEnabled = !programState->CameraMouseMovementUpdateEnabled;
+    }
+    if (key == GLFW_KEY_F3 && action == GLFW_PRESS) {
+        blinn = !blinn;
+    }
+
 }
 
 // utility function for loading a 2D texture from file
